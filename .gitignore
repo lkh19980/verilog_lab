@@ -40,3 +40,6 @@
 *.sim/
 *.xpr
 *.wcfg
+*.dcp
+*.log
+*.jou
