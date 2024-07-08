@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+#Vivado
+*.cache/
+*.gen/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+.xpr
+.wcfg
