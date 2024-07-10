@@ -50,10 +50,10 @@ always #(CLK_PD/2) CLK =~CLK;
 
 initial begin
 wait(!RST);
-DIN = 8'b10110000;//write 10110 b0
+DIN = {5'b10000,2'b11,1'b0};//write 10000 -> 10
 WR = 1'b1;
 #CLK_PD
-DIN = 8'b11010011;//d3
+DIN = 8'b10010011;//d3
 #CLK_PD
 WR = 1'b0;
 #CLK_PD

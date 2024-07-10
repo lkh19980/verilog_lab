@@ -55,29 +55,29 @@ blk_mem_gen_0 ram32x8 (
 always @(posedge SCLK) begin
     case(cstate)
     idle : begin
-        WEN = 1'b0;
-        index = 0;
-        DIN = 1'b0;
-        ADDR = 1'b0;
-        tmpMOSI = 16'b0;
-        cstate = RxDIN;
+        WEN <= 1'b0;
+        index <= 0;
+        DIN <= 1'b0;
+        ADDR <= 1'b0;
+        tmpMOSI <= 16'b0;
+        cstate <= RxDIN;
     end
     RxDIN : begin //Starting Point
         //if(!nCS)begin
-            tmpMOSI[index] = MOSI;
+            tmpMOSI[index] <= MOSI;
             if(tmpMOSI[0]) begin //Read
-                len = 7;//3bit max 7
+                len <= 7;//4bit max 7
             end
             else begin
                 //tmpMOSI[index] = MOSI; //Write
-                len = 15;//3bit max 15
+                len <= 15;//4bit max 15
             end
             
             if(index == len) begin
-                cstate = ram;
+                cstate <= ram;
                 //WEN = 1'b1;
             end
-            index = index + 1;
+            index <= index + 1;
         //end
     end
     ram: begin

@@ -54,7 +54,7 @@ always @(posedge CLK)
     else
         cstate <= nstate;
 */
-integer i = 10;
+integer i = 0;
 integer j= 0;//I want to know how long the integer takes memory. 
 //integer RW = 3'b0;
 reg [3:0] len = 4'b0;
@@ -81,7 +81,7 @@ always @ (posedge CLK) begin
             nCS <= 1'b0;
         end
         else begin//Write
-            RD <= 1'b1;
+            //RD = 1'b1;
             //if(DIN) begin
                 tmpDIN[15:8] <= DIN[7:0];
                 RD <= 1'b0;
@@ -95,32 +95,18 @@ always @ (posedge CLK) begin
         end
     end
     send_slave : begin
-        /*
-        i <= i + 1;
-        if(i == 5) SCLK = 1'b0;
-        else
-        if(i == 10) begin
-            SCLK = 1'b1;
-            if( j<= len)
-                MOSI <= tmpDIN[j];
-            j <= j +1;
-            i <= 0;
-            if(j == len + 1)begin
-                if(len == 7)
-                    nstate <= receive_slave;
-                else
-                    nstate <= stop;
-            end
+        if(nCS)begin
+            nstate <= stop;
+            
         end
-        */
     end
     stop : begin
+        if(!SCLK)begin
         nCS <= 1'b1;
         SCLK<= 1'b0;
-        MOSI <= 1'b0;
         j<=0;
         nstate <= idle;
-
+        end
     end
     receive_slave : begin
         j = j +1;
@@ -136,6 +122,7 @@ end
 
 
 //SCLK 1/10 clk
+
 initial SCLK = 1'b0;
 always @(posedge CLK) begin
 if(!nCS) begin
@@ -148,7 +135,6 @@ end
 end
 
 //
-///*
 always @(posedge SCLK) begin
 if(nstate == send_slave) begin
     //SCLK = inSCLK;
@@ -162,5 +148,5 @@ if(nstate == send_slave) begin
     end
     end
 end
-//*/
+
 endmodule

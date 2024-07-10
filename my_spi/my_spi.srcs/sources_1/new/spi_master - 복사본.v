@@ -38,91 +38,73 @@ module spi_master(
     );
 
 parameter   idle = 3'b000,
-            Din_fifo = 3'b001,
-            send_slave = 3'b010,
+            RxDIN = 3'b001,
+            send = 3'b010,
             stop = 3'b011,
-            receive_slave = 3'b100;
+            receive = 3'b100;
 
-reg [2:0] cstate,  nstate=3'b0;
+reg [2:0] cstate,  nstate;
 reg [15:0] tmpDIN =1'b0;
 wire nSCLK= ~SCLK;
 
-/*
 always @(posedge CLK)
     if(RST)
-        cstate <= idle;
+        cstate = idle;
     else
-        cstate <= nstate;
-*/
-integer i = 10;
+        cstate = nstate;
+
+integer i = 0;
 integer j= 0;//I want to know how long the integer takes memory. 
-//integer RW = 3'b0;
-reg [3:0] len = 4'b0;
+integer RW = 3'b0;
 always @ (posedge CLK) begin
 //always @ (posedge CLK, DIN) begin    
     
-    case(nstate)
+    case(cstate)
     idle : begin
-        RD <= 1'b1;
+        RD = 1'b1;
         if(DIN)begin
-            tmpDIN[7:0] <= DIN[7:0];
-            nstate <= Din_fifo;
+            tmpDIN[7:0] = DIN[7:0];
+            nstate = RxDIN;
         end
         else
         //$display("not");
-            nstate <= idle;
+            nstate = idle;
     end
-    Din_fifo : begin
+    RxDIN : begin
         //tmpDIN[7:0] = DIN[7:0];
-        RD <= 1'b0;
+        RD = 1'b0;
         if(tmpDIN[0])begin//READ 
-            nstate <= send_slave;
-            len <= 7;
-            nCS <= 1'b0;
+            nstate = send;
+            RW = 8;
+            nCS = 1'b0;
         end
         else begin//Write
-            RD <= 1'b1;
+            //RD = 1'b1;
             //if(DIN) begin
-                tmpDIN[15:8] <= DIN[7:0];
-                RD <= 1'b0;
-                nstate <= send_slave;
-                //RW <= 16;
-                len <= 15;
-                nCS <= 1'b0;
+                tmpDIN[15:8] = DIN[7:0];
+                RD = 1'b0;
+                nstate = send;
+                RW = 16;
+                nCS = 1'b0;
             //end
         //else
         //        nstate = RxDIN;
         end
     end
-    send_slave : begin
-        /*
-        i <= i + 1;
-        if(i == 5) SCLK = 1'b0;
-        else
-        if(i == 10) begin
-            SCLK = 1'b1;
-            if( j<= len)
-                MOSI <= tmpDIN[j];
-            j <= j +1;
-            i <= 0;
-            if(j == len + 1)begin
-                if(len == 7)
-                    nstate <= receive_slave;
-                else
-                    nstate <= stop;
-            end
+    send : begin
+        if(nCS)begin
+            nstate = stop;
+            
         end
-        */
     end
     stop : begin
-        nCS <= 1'b1;
-        SCLK<= 1'b0;
-        MOSI <= 1'b0;
-        j<=0;
-        nstate <= idle;
-
+        nCS = 1'b1;
+        SCLK=1'b0;
+        j=0;
+        
+        nstate = idle;
     end
-    receive_slave : begin
+    receive : begin
         j = j +1;
         if(j >(5*8 + 8)) begin
             nCS = 1'b1;
@@ -136,31 +118,31 @@ end
 
 
 //SCLK 1/10 clk
+
 initial SCLK = 1'b0;
 always @(posedge CLK) begin
 if(!nCS) begin
-    i<= i+1;
+    i= i+1;
     if(i==5) begin
-        SCLK <= ~SCLK;
-        i <= 0;
+        SCLK = ~SCLK;
+        i = 0;
     end
 end
 end
 
 //
-///*
 always @(posedge SCLK) begin
-if(nstate == send_slave) begin
+if(cstate == send) begin
     //SCLK = inSCLK;
     MOSI <= tmpDIN[j];
     j<=j+1;
-    if(j == len) begin 
-        if(len ==7)
-            nstate <= receive_slave;
+    if(j+1 > RW) begin 
+        if(RW ==8)
+            nstate = receive;
         else
-        nstate <= stop;
+        nstate = stop;
     end
     end
 end
-//*/
+
 endmodule
