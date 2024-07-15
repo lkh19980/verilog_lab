@@ -1,0 +1,3 @@
+E:/verilog_lab/my_axi_test/platform/zynq_fsbl/build/CMakeFiles/fsbl.elf.dir
+E:/verilog_lab/my_axi_test/platform/zynq_fsbl/build/CMakeFiles/edit_cache.dir
+E:/verilog_lab/my_axi_test/platform/zynq_fsbl/build/CMakeFiles/rebuild_cache.dir
