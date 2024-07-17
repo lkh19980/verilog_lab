@@ -1,0 +1,19 @@
+/ {
+	amba_pl: amba_pl {
+		ranges;
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		myip_v1_0_S00_AXI_0: myip_v1_0_S00_AXI@40000000 {
+			xlnx,rable = <0>;
+			compatible = "xlnx,myip-v1-0-S00-AXI-1.0";
+			status = "okay";
+			clock-names = "S_AXI_ACLK";
+			xlnx,ip-name = "myip_v1_0_S00_AXI";
+			xlnx,edk-iptype = "PERIPHERAL";
+			reg = <0x40000000 0x1000>;
+			clocks = <&clkc 15>;
+			xlnx,name = "myip_v1_0_S00_AXI_0";
+		};
+	};
+};

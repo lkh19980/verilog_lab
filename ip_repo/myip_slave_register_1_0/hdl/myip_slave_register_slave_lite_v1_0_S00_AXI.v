@@ -15,7 +15,8 @@
 	)
 	(
 		// Users to add ports here
-
+		output hibit;
+		output lowbit;
 		// User ports ends
 		// Do not modify the ports beyond this line
 

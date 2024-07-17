@@ -23,15 +23,18 @@
 module display_inf(
     input           RST,
     input           CLK,      // 125 Mhz
+    //input [3:0]     low_bit,
+    //input [3:0]     hi_bit,
     input [3:0]     NUM_1S,
     input [3:0]     NUM_10S,
     output reg     CA,
     output reg [6:0] AN
     );
-parameter CLK_FREQ = 125_000_000;
+parameter CLK_FREQ = 100_000_000;
 parameter CNT_MAX = CLK_FREQ / 1000_000; 
 
 reg [26:0] clk_cnt;
+(* mark_debug = "true" *)
 wire    enable;
 
 always @(posedge CLK)
