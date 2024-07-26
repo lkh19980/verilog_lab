@@ -53,6 +53,12 @@ wire	[1:0]		axi_rresp;
 wire				axi_rvalid;
 reg                 axi_rready;
 
+
+
+// **********************************************
+wire    [7:0]       din;
+wire    [7:0]       dout;
+// **********************************************
 //***********************************************
 //    UUT instantiation
 //***********************************************
@@ -60,7 +66,7 @@ assign axi_wstrb = 4'hf;
 //----------------------------
 //    AXI 
 //----------------------------
-axi_slave_S_AXI uut (
+axi_slave_S_AXI axi_slv (
 
     .S_AXI_ACLK             (clk), //clock
     .S_AXI_ARESETN          (rstn),//Address reset negative
@@ -86,7 +92,15 @@ axi_slave_S_AXI uut (
     .S_AXI_BREADY           (axi_bready),//write resp ready
     .S_AXI_BVALID           (axi_bvalid),//write respvalid
     //user port to SPI
-    .ncs                    (ncs)
+    //inputs
+    .full                   (full),
+    .empty                  (empty),
+    .dout                   (din),
+    
+    //outputs
+    .wen                    (wen),
+    .din                    (dout),
+    .ren                    (ren)
     );
 spi_top spi_0(
     //default system input
@@ -134,7 +148,7 @@ initial begin
     wait (rstn == 1'b1);
     repeat (5) @(posedge clk);
     for(i=0; i < 6; i = i+1) begin
-        TSK_AXI_WRITE(cnt, cnt/4);
+        TSK_AXI_WRITE(cnt, cnt*16'b1001101011100101);
         cnt = cnt+ 4;
     end       // for
     cnt = 4'd0;    

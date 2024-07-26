@@ -15,13 +15,15 @@
 	)
 	(
 		// Users to add ports here
+		//inputs
         input full,
-        output reg wen,
-        input [7:0] din,
         input empty,
+        input [7:0] din,//RX FIFO
+        //outputs
+        output wen,
+        output reg [7:0] dout, //TX FIFO
         output reg ren,
-        output reg [7:0] dout,
-        output ncs,
+        
         //goto User logic 332 line
 		// User ports ends
 		// Do not modify the ports beyond this line
@@ -223,7 +225,8 @@
 	  else begin
 	    if (S_AXI_WVALID)
 	      begin
-	        case ( (S_AXI_AWVALID) ? S_AXI_AWADDR[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] : axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
+	        //case ( (S_AXI_AWVALID) ? S_AXI_AWADDR[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] : axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
+	        case (3'h1)
 	          3'h0:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
@@ -329,9 +332,29 @@
 	// Implement memory mapped register select and read logic generation
 	  assign S_AXI_RDATA = (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h0) ? slv_reg0 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h1) ? slv_reg1 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h2) ? slv_reg2 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h3) ? slv_reg3 :0;  
 	// Add user logic here
-    reg [2:0] state = 3'b0;    
+    reg [2:0] state = 3'b0;
     always @(posedge S_AXI_ACLK) begin
-    dout = (full)? 8'b0 : slv_reg1[7:0];
+        if(S_AXI_AWVALID &S_AXI_AWREADY) 
+        begin
+        dout = S_AXI_AWREADY[7:0];
+        end
+        else if(S_AXI_WVALID & S_AXI_WREADY) dout = S_AXI_AWREADY[15:0];
+        
+    end  
+    //assign dout = slv_reg1[7:0];
+    //assign dout = S_AXI_WDATA[7:0];
+    assign wen = (S_AXI_WVALID & S_AXI_WREADY) | (S_AXI_AWVALID&S_AXI_AWREADY);
+    //assign dout = waddr_en ? slv_reg1[7:0] : (wen? slv_reg1[15:8] :dout);
+    always @(posedge wen) begin
+    //if(~S_AXI_WVALID)begin
+        dout = slv_reg1[7:0];
+        slv_reg1 = slv_reg1>>8;
+    //end
+    end
+    /*
+    always @(posedge S_AXI_ACLK) begin
+    //din = (full)? 8'b0 : slv_reg1[7:0];
+   /*
     if (S_AXI_ARESETN == 1'b0)
         begin
         wen = 1'b0;
@@ -353,20 +376,24 @@
                 1: begin
                     wen = 1'b0;
                     slv_reg1 = slv_reg1>>8;
-                    
+                    state <= 2'd2;
                 end
-                
+                2: begin
+                    wen = 1'b1;
+                    state <= 2'd3;
+                end
+                3: begin
+                    wen = 1'b0;
+                    state <= 2'b0;
+                end
                 
                 
             endcase
             
-        end
-    wen =1'b1;
-    wen=1'b0;
+        end//else end
     
-    wen =1'b1, wen=1'b0;
-    end
-    
+    end// always end
+    */
     
 	// User logic ends
 
