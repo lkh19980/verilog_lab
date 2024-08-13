@@ -20,7 +20,7 @@
         input empty,
         input [7:0] din,//RX FIFO
         //outputs
-        output wen,
+        output reg wen,
         output reg [7:0] dout, //TX FIFO
         output reg ren,
         
@@ -76,7 +76,7 @@
 		input wire  S_AXI_ARVALID,
 		// Read address ready. This signal indicates that the slave is
     		// ready to accept an address and associated control signals.
-		output wire  S_AXI_ARREADY,
+		output wire  S_AXI_ARREADY,//make signal
 		// Read data (issued by slave)
 		output wire [C_S_AXI_DATA_WIDTH-1 : 0] S_AXI_RDATA,
 		// Read response. This signal indicates the status of the
@@ -84,7 +84,7 @@
 		output wire [1 : 0] S_AXI_RRESP,
 		// Read valid. This signal indicates that the channel is
     		// signaling the required read data.
-		output wire  S_AXI_RVALID,
+		output wire  S_AXI_RVALID,//make signal
 		// Read ready. This signal indicates that the master can
     		// accept the read data and response information.
 		input wire  S_AXI_RREADY
@@ -225,8 +225,8 @@
 	  else begin
 	    if (S_AXI_WVALID)
 	      begin
-	        //case ( (S_AXI_AWVALID) ? S_AXI_AWADDR[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] : axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-	        case (3'h1)
+	        case ( (S_AXI_AWVALID) ? S_AXI_AWADDR[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] : axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
+	        //case (3'h1)
 	          3'h0:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
@@ -330,8 +330,46 @@
 	          end                                       
 	        end                                         
 	// Implement memory mapped register select and read logic generation
-	  assign S_AXI_RDATA = (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h0) ? slv_reg0 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h1) ? slv_reg1 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h2) ? slv_reg2 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h3) ? slv_reg3 :0;  
+	  //assign S_AXI_RDATA = (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h0) ? slv_reg0 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h1) ? slv_reg1 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h2) ? slv_reg2 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h3) ? slv_reg3 :0;  
 	// Add user logic here
+	
+	//output wen
+	always @(*) begin
+        if(!S_AXI_ARESETN) begin
+            wen = 1'b0;
+        end
+        else begin
+            //if( (S_AXI_AWVALID | !(S_AXI_AWREADY))) wen = 1'b1;//S_AXI_BVALID &
+            if(S_AXI_AWVALID) wen = 1'b1;
+            else if(S_AXI_WDATA[15]) 
+                wen = 1'b0;
+            else 
+                wen = !(S_AXI_AWREADY);        
+        end	
+	end
+	
+	//output reg[7:0] dout
+	//assign dout = slv_reg1[7:0]
+	
+	always @(*) begin
+        if(S_AXI_AWVALID & !full)
+            dout = S_AXI_WDATA[15:8];
+        else if(!S_AXI_AWREADY& !full)
+            dout = S_AXI_WDATA[7:0];
+        else
+            dout = 8'bZ;
+	end
+	//output reg ren
+	assign S_AXI_RDATA = {24'b0, din[7:0]};
+	always @(*) begin
+	   if(!S_AXI_ARESETN)
+	       ren = 1'b0;
+	   else
+	       ren = S_AXI_RVALID & S_AXI_RREADY;
+	end
+	
+	
+	/*
     reg [2:0] state = 3'b0;
     always @(posedge S_AXI_ACLK) begin
         if(S_AXI_AWVALID &S_AXI_AWREADY) 

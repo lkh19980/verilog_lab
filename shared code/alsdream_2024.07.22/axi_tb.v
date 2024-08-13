@@ -66,7 +66,7 @@ assign axi_wstrb = 4'hf;
 //----------------------------
 //    AXI 
 //----------------------------
-axi_slave_S_AXI axi_slv (
+myip_S_AXI axi_slv (//myip_v1_0_S00_AXI
 
     .S_AXI_ACLK             (clk), //clock
     .S_AXI_ARESETN          (rstn),//Address reset negative
@@ -93,14 +93,14 @@ axi_slave_S_AXI axi_slv (
     .S_AXI_BVALID           (axi_bvalid),//write respvalid
     //user port to SPI
     //inputs
-    .full                   (full),
-    .empty                  (empty),
-    .dout                   (din),
+    .FULL                   (full),
+    .EMPTY                  (empty),
+    .DOUT                   (din),
     
     //outputs
-    .wen                    (wen),
-    .din                    (dout),
-    .ren                    (ren)
+    .WEN                    (wen),
+    .DIN                    (dout),
+    .REN                    (ren)
     );
 spi_top spi_0(
     //default system input
@@ -112,8 +112,8 @@ spi_top spi_0(
     .DIN(din),//8bit input
     .EMPTY(empty),//output
     .RD(ren),//input
-    .DOUT(dout),//8bit,output
-    .ncs(ncs)//output
+    .DOUT(dout)//8bit,output
+    //.ncs(ncs)//output
 //    output      sclk,
 //    output      mosi,
 //    output      miso
@@ -144,18 +144,27 @@ integer i;
 reg [4:0] cnt;
 
 initial begin
-    cnt = 4'd0;  
+    cnt = 4'd1;  
     wait (rstn == 1'b1);
     repeat (5) @(posedge clk);
-    for(i=0; i < 6; i = i+1) begin
-        TSK_AXI_WRITE(cnt, cnt*16'b1001101011100101);
-        cnt = cnt+ 4;
+    for(i=0; i < 4; i = i+1) begin
+        TSK_AXI_WRITE(cnt, {1'b0, 2'b00,cnt[4:0], 4'he, cnt[3:0]} );
+        cnt = cnt+ 1;
     end       // for
-    cnt = 4'd0;    
-    repeat (10) @(posedge clk);  
-    for(i=0; i < 6; i = i+1) begin
+    cnt = 4'd1;    
+    repeat (1000) @(posedge clk);  
+    for(i=0; i < 4; i = i+1) begin
+        TSK_AXI_WRITE(cnt, {1'b1, 2'b00,cnt[4:0], 8'h66} );
+        cnt = cnt+ 1;
+    end       // for
+    cnt = 4'd0; 
+    repeat (2000) @(posedge clk);  
+    
+    
+    
+    for(i=0; i < 3; i = i+1) begin
         TSK_AXI_READ(cnt);
-        cnt = cnt + 4;
+        cnt = cnt + 1;
     end
     #(CLK_PERIOD*30);
     $finish;        

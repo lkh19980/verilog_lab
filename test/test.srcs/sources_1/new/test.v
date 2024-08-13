@@ -26,7 +26,8 @@ input B,
 input C,
 input CLK,
 output D,
-output reg E
+output reg E,
+output reg F //cannot wire
     );
 assign D = A? B : C;    
 
@@ -35,7 +36,15 @@ begin
 if(A)
 E<=B;
 else
-E=C;
+E<=C;
 end 
+
+always @(*)
+begin
+if(A)
+F=B;
+else
+F=C;
+end
 
 endmodule
